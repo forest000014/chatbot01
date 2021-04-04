@@ -1,0 +1,63 @@
+openapi: 3.0.0   # Open api version
+
+info:
+  title: OpenChat
+  version: "v0.1"
+  contact:
+    name: AInizer - Lee hoseop
+  description: |
+    Opensource chatting framework for generative models.
+    ---
+      How to use:
+      * Fill the text. This is the message you will send to the AI.
+      * After a few seconds, the AI will respond.
+    ---
+    And you can use this in [demo page](https://main-openchat-fpem123.endpoint.ainize.ai/).
+
+    Origin Git repo >> [hyunwoongko/openchat](https://github.com/hyunwoongko/openchat)
+
+servers:
+  - url: https://main-openchat-fpem123.endpoint.ainize.ai/
+
+paths:
+  /send/API_user:
+    post:
+      requestBody:
+        required: true
+        description: |
+          This request sends a message to the AI.
+
+          Request body example
+
+              text: Hey, nice to meet you bro!
+
+          curl example
+
+            You can change the "API_user" of the url to any name you want.
+
+              curl -X POST "https://main-openchat-fpem123.endpoint.ainize.ai/send/API_user" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "text=Hey, nice to meet you bro!"
+
+          --
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: "This is the message you will send to the AI."
+              required:
+                - text
+      responses:   # Set response
+        '200':
+          description: "Successful Response"
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: "Bad Request Error"
+        '429':
+          description: "Too many requests"
+        '500':
+          description: "Server-side Error"

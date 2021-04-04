@@ -3,55 +3,110 @@ import ReactDOM from 'react-dom';
 import './index.css';
 // import App from './App';
 import reportWebVitals from './reportWebVitals';
+import firebase from 'firebase';
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAJbh2JEwFvPkcZQtjvFBnSC01tGVK3Mxc",
+  authDomain: "cookingbot-4c2b0.firebaseapp.com",
+  projectId: "cookingbot-4c2b0",
+  storageBucket: "cookingbot-4c2b0.appspot.com",
+  messagingSenderId: "242270873021",
+  appId: "1:242270873021:web:ce635f56d1728122d99ed4",
+  measurementId: "G-WT0S94K2KY"
+};
+var fbApp = firebase.initializeApp(firebaseConfig);
+var db = fbApp.firestore();
 
-const ChatbotApp = () => {
-  const [chatlogs, setChatlogs] = useState([
-    {
-      id: 0,
-      isAI: false,
-      text: 'dummy',
-    },
-    {
-      id: 1,
-      isAI: true,
-      text: 'Hi. What can I do for you?',
-    },
-    {
-      id: 2,
-      isAI: false,
-      text: 'I\'m hungry!',
-    },
-  ]);
-  const nextId = useRef(3);
+console.log('firebase app initialized');
+console.log(fbApp);
 
-  console.log('cookingBot v1.0 has started...');
-  console.log('렌더링 할 때마다 ChatbotApp이 다시 실행되는가?')
+// db.collection('users').doc('alovelace').set({
+//   first: 'Ada',
+//   last: 'Lovelace',
+//   born: 1815
+// });
 
-  const onInsert = useCallback(
-    text => {
-      const chatlog = {
-        id: nextId.current,
-        isAI: false,
-        text,
-      };
-      setChatlogs(chatlogs.concat(chatlog));
-      console.log(chatlogs); //
-      nextId.current += 1;
-    },
-    [chatlogs],
-  );
+// [component]
+class ChatbotApp extends Component {
+  constructor() {
+    super();
+    this.state = {
+      chatlogs: [],
+      cnt: 0
+    };
 
-  return (
-    <div className="chat_window">
-      <TopMenu />
-      <ChatList chatlogs={chatlogs} />
-      <InputBox onInsert={onInsert}/>
-    </div>
-  );
+    const observer = db.collection('chats')
+    .onSnapshot(querySnapshot => {
+      querySnapshot.docChanges().forEach(change => {
+        if (change.type === 'added') {
+          console.log('added: ', change.doc.data());
+          this.setState({chatlogs: this.state.chatlogs.concat({isAI: change.doc.data().from === 'cookingBot',
+          text: change.doc.data().message }), cnt: this.state.cnt + 1});
+        }
+      })
+    })
+  }
+
+  // 전송 버튼을 눌렀을 때 실행될 메서드. inputBox -> <div send_message> -> onClick -> onInsert
+  onInsert(text) {
+    db.collection('chats').add({
+      from: 'me',
+      message: text,
+      order: this.state.cnt
+    });
+    console.log(this.state.chatlogs); //
+  }
+  
+  onInsert = this.onInsert.bind(this);
+  /*
+  async componentDidMount() {
+    let chats = await getChats();
+    let chatlogs = [];
+    let size = 0;
+
+    console.log('## componentDidMount() started.'); //
+
+    chats.forEach((doc)=>{
+      size++;
+      console.log(doc.id, '=>', doc.data());
+      chatlogs.push({isAI: doc.data().from === 'cookingBot',
+        text: doc.data().message });
+    });
+    
+    console.log('## chats size when mounted: ' + size); //
+    this.setState({chatlogs: chatlogs, cnt: size + 1});
+    console.log('## componentDidMount() finished.'); //
+  }*/
+
+  render() {
+    //console.log('cookingBot v1.0 has started...');
+    //console.log('왜 렌더링 할 때마다 ChatbotApp이 다시 실행되는가?')
+    
+    return (
+      <div className="chat_window">
+        <TopMenu />
+        <ChatList chatlogs={this.state.chatlogs} />
+        <InputBox onInsert={this.onInsert}/>
+      </div>
+    );
+  }
 }
+/*
+// [function]
+async function observeChats() {
 
+  // const snapshot = await db.collection('chats').orderBy('order').get();
+  return snapshot;
+  // snapshot.forEach((doc) => {
+  //   console.log(doc.id, '=>', doc.data());
+  // });
+}
+*/
+// [component]
 class TopMenu extends Component {
   render() {
+    const botName = "cookingBot";
+    let appVer = "1.0";
     return (
       <div className="top_menu">
         <div className="buttons">
@@ -60,13 +115,14 @@ class TopMenu extends Component {
           <div className="green_button"></div>
         </div>
         <div className="title">
-          <div className="text">cookingBot v1.0</div>
+          <div className="text">{botName} v{appVer}</div>
         </div>
       </div>
     );
   }
 }
 
+// [component]
 const InputBox = ({ onInsert }) => {
   const [value, setValue] = useState('');
   const onChange = useCallback(e => {
@@ -108,9 +164,16 @@ const InputBox = ({ onInsert }) => {
   //}
 }
 
+// [component]
 class ChatList extends Component {
+  constructor(props){
+    super(props);
+    //this.state = {chatlogs: props.chatlogs};
+    //console.log(this.props);
+  }
+
   render() {
-    const chatlogList = this.props.chatlogs.slice(1, this.props.chatlogs.length).map(
+    const chatlogList = this.props.chatlogs.map(
       chat => (<ChatListItem isAI={chat.isAI} text={chat.text} />)
     );
 
@@ -122,6 +185,7 @@ class ChatList extends Component {
   }
 }
 
+// [component]
 class ChatListItem extends Component {
   render() {
     if (this.props.isAI) {
@@ -148,7 +212,6 @@ class ChatListItem extends Component {
     }
   }
 }
-
 
 ReactDOM.render(
   <React.StrictMode>

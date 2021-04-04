@@ -1,0 +1,9 @@
+cloud firestore 트리거 https://firebase.google.com/docs/functions/firestore-events?authuser=0
+cloud firestore로 데이터 정렬 https://firebase.google.com/docs/firestore/query-data/order-limit-data?authuser=0
+firebase pkg https://www.npmjs.com/package/firebase
+google : firebase react github
+  https://github.com/firebase/firebaseui-web-react/blob/master/example/src/App.jsx
+google : how to get data and update ui in react
+google : react useCallback in component
+
+호스팅 방법??
